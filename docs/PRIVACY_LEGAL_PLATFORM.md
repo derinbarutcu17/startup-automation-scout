@@ -36,6 +36,21 @@ Therefore Product Hunt API integration is not part of the commercial-capable MVP
 
 Do not build automated LinkedIn scraping or messaging into the MVP. If LinkedIn information is relevant, use manually supplied information or official/authorized access paths that are compatible with the intended use.
 
+## Implemented Prospect Dossier Boundary
+
+The optional Prospect Dossier extension can research a small number of public
+professional identities for one owner-selected opportunity. It may retain a
+public role, a permitted public profile URL, and a professional email only when
+the email is shown by a retained source or explicitly supplied and confirmed by
+the owner. It never guesses an address from a name, scrapes authenticated
+LinkedIn pages, collects unrelated personal details, or treats a title as proof
+of authority or personal pain.
+
+Professional email values are encrypted at rest and redacted from default
+Hermes exports, source text, logs, diagnostics, and browser read models. The
+extension creates no send, inbox, scheduling, or CRM operation. Gmail OAuth is
+blocked in production until an owner-authentication boundary is implemented.
+
 ## Robots and Site Terms
 
 Before enabling automated retrieval for a new source:
@@ -71,7 +86,9 @@ Engineering defaults:
 
 ## External Actions
 
-The Scout is research-only in MVP.
+The core Scout is research-only. The optional Prospect Dossier extension stops
+at a human-reviewed draft or an explicitly created Gmail draft and does not
+send, schedule, or read messages.
 
 Explicit human approval is required before any future feature can:
 
@@ -84,7 +101,9 @@ Explicit human approval is required before any future feature can:
 - create a public issue or comment;
 - connect to a target company's private environment.
 
-The MVP worker should not even possess message-sending tools. This is stronger than relying on a prompt saying "do not send".
+The MVP worker should not possess message-sending or mailbox tools. The Gmail
+integration is an application-level create-draft adapter, not a worker send
+capability. This is stronger than relying on a prompt saying "do not send".
 
 ## Copyright and Source Storage
 

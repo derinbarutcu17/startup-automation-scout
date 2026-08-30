@@ -2,9 +2,11 @@
 
 ## Current status
 
-This repository contains a runnable MVP of Startup Automation Scout. It is a
-single-owner, evidence-first research workbench for turning a public company
-URL into a reviewable automation opportunity.
+This repository contains a runnable MVP of Startup Automation Scout plus a
+fixture-first, draft-only Prospect Dossier extension. It is a single-owner,
+evidence-first research workbench for turning a public company URL into a
+reviewable automation opportunity and, when explicitly requested, a sourced
+outreach preparation package.
 
 The implemented vertical slice is:
 
@@ -38,7 +40,8 @@ For project intent and vocabulary, read these files in order:
 4. `docs/PRODUCT_SPEC.md`
 5. `docs/ARCHITECTURE.md`
 6. `IMPLEMENTATION_PLAN.md`
-7. `DESIGN.md`
+7. `docs/OUTREACH_DOSSIER_IMPLEMENTATION_PLAN.md` when working on the approved outreach extension
+8. `DESIGN.md`
 
 Use the relevant ADRs in `docs/adr/` before changing a hard-to-reverse
 architecture decision.
@@ -78,6 +81,9 @@ The dashboard routes are:
 - `/opportunities`: passing and held opportunities.
 - `/opportunities/[opportunityId]`: evidence trail, workflow hypothesis,
   deterministic versus AI steps, score breakdown and review form.
+- `/prospects`: selected outreach preparation dossiers.
+- `/prospects/[prospectDossierId]`: people, contacts, angles, drafts, source
+  trail, Hermes exports, approvals, and Gmail draft controls.
 - `/reports/[runId]`: concise weekly report for a completed or partial run.
 - `/reviews`: append-only review history.
 - `/settings`: weekly schedule, provider boundary and operating guardrails.
@@ -125,7 +131,31 @@ cannot create the same weekly occurrence twice.
   platform paths.
 - Scores are deterministic weighted rubrics with stored dimension rationales.
 - Provider calls reserve run budget before invocation and write diagnostics.
-- No worker provider contract exposes messaging or outreach capabilities.
+- No worker provider contract exposes sending, inbox, scheduling, or CRM
+  capabilities. The optional Gmail adapter is an application-level create-draft
+  boundary and is unavailable in production until owner authentication exists.
+
+### Prospect Dossier flow
+
+The implemented extension is deliberately opportunity-level and opt-in. From
+an opportunity marked `investigate` or `prototype`, the owner can enqueue
+bounded people research, generate source-linked angles, compose up to three
+draft steps, download a redacted Hermes Markdown or JSON bundle, and approve an
+exact batch for Gmail draft creation. Professional emails are encrypted at
+rest. Public professional profile URLs may be retained when discovered through
+permitted search or supplied by the owner, but LinkedIn pages are never scraped
+or messaged and email addresses are never guessed.
+
+The relevant implementation seams are:
+
+- `src/modules/person-research/`: bounded candidate normalization and provenance;
+- `src/modules/outreach-analysis/`: evidence-backed angle generation and gates;
+- `src/modules/draft-composer/`: draft sequence composition and validation;
+- `src/modules/hermes-export/`: redacted, source-marked Hermes handoff;
+- `src/infrastructure/db/repositories-prospect.ts`: ownership, encryption,
+  suppression, approval, idempotency, and state rules;
+- `src/worker/index.ts`: durable prospect job leasing and recovery;
+- `src/providers/google-gmail.ts`: create-draft-only Gmail adapter.
 
 ## Local setup
 
@@ -205,8 +235,12 @@ pnpm e2e
   OpenAI or fixture concepts into canonical domain types.
 - Keep private access as an explicit requirement or unknown. Never infer that
   a company grants access to internal systems.
-- Do not add email, LinkedIn, CRM, publishing or other external-action tools
-  without a new product decision and explicit user authorization.
+- The owner-approved outreach extension described in
+  `docs/OUTREACH_DOSSIER_IMPLEMENTATION_PLAN.md` is implemented as a
+  fixture-first, draft-only slice. Keep it source-backed and human-controlled.
+  It must not add automatic sending, LinkedIn scraping or messaging, inbox
+  access, CRM mutation, or other external actions without a separate product
+  decision and explicit authorization.
 - Do not bypass the safe retrieval provider for convenience.
 - Add a focused test for a changed invariant. For gates, validators and
   scanners, prove both an allowed case and a safely rejected case.
@@ -225,3 +259,8 @@ pnpm e2e
   separate report artifact.
 - Authentication, multi-user permissions, production deployment secrets and
   live-provider operations remain deployment work.
+- The live people provider is bounded to first-party retrieval plus permitted
+  search discovery. It does not extract authenticated LinkedIn profiles.
+- Gmail OAuth is intentionally blocked when `APP_ENV=production` because the
+  current app has no owner-authentication boundary. Fixture Gmail mode remains
+  available for tests and local verification.

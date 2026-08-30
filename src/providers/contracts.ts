@@ -32,9 +32,53 @@ export interface RetrievalProvider {
   retrieveDocument(url: string): Promise<ProviderResult<RetrievedDocument>>;
 }
 
-export type StructuredTaskType = "extract_evidence" | "workflow_hypothesis" | "automation_opportunity" | "genericness_critic";
+export type StructuredTaskType =
+  | "extract_evidence"
+  | "workflow_hypothesis"
+  | "automation_opportunity"
+  | "genericness_critic"
+  | "people_candidates"
+  | "outreach_angle"
+  | "draft_compose";
 
 export interface ModelProvider {
   id: string;
   runStructuredModel<T>(taskType: StructuredTaskType, input: unknown, schema: z.ZodType<T>): Promise<ProviderResult<T>>;
+}
+
+export interface PersonCandidate {
+  fullName: string;
+  roleTitle?: string | null;
+  function?: string | null;
+  seniority?: string | null;
+  profileUrl?: string | null;
+  profilePlatform?: string | null;
+  sourceUrl?: string | null;
+  sourceTier?: "tier_1" | "tier_2" | "tier_3";
+  contactValue?: string | null;
+  contactChannel?: "public_professional_email" | "public_profile_url" | "company_contact_form" | "other" | null;
+  confidence?: "high" | "medium" | "low";
+  sourceLocator?: string | null;
+}
+
+export interface PeopleProvider {
+  id: string;
+  findProfessionalCandidates(company: { name: string; domain: string }, roleQuestions: string[]): Promise<ProviderResult<PersonCandidate[]>>;
+}
+
+export interface GmailDraftInput {
+  to: string;
+  subject: string;
+  body: string;
+  headers?: Record<string, string>;
+}
+
+export interface GmailDraftResult {
+  draftId: string;
+  messageId?: string;
+}
+
+export interface GmailDraftProvider {
+  id: string;
+  createDraft(input: GmailDraftInput): Promise<ProviderResult<GmailDraftResult>>;
 }

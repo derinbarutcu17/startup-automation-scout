@@ -43,6 +43,23 @@ export const envSchema = z
       blankToUndefined,
       z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
     ),
+    CONTACT_ENCRYPTION_KEY: z.preprocess(blankToUndefined, z.string().min(32).optional()),
+    GMAIL_PROVIDER: z.enum(["fixture", "google"]).default("fixture"),
+    GMAIL_CLIENT_ID: z.preprocess(blankToUndefined, z.string().min(1).optional()),
+    GMAIL_CLIENT_SECRET: z.preprocess(blankToUndefined, z.string().min(1).optional()),
+    GMAIL_ACCESS_TOKEN: z.preprocess(blankToUndefined, z.string().min(1).optional()),
+    GMAIL_TIMEOUT_MS: positiveInt(15_000),
+    GOOGLE_REDIRECT_URI: z.string().url().optional(),
+    PROSPECT_MAX_PEOPLE: positiveInt(3),
+    PROSPECT_MAX_DRAFT_STEPS: z.preprocess(blankToUndefined, z.coerce.number().int().min(1).max(3).default(3)),
+    CONTACT_FRESHNESS_DAYS: positiveInt(90),
+    PROSPECT_BUDGET_MAX_SEARCH_REQUESTS: positiveInt(10),
+    PROSPECT_BUDGET_MAX_MODEL_SPEND: nonNegativeNumber(2),
+    PROSPECT_BUDGET_MAX_RUNTIME_SECONDS: positiveInt(600),
+    HERMES_EXPORT_REDACT_CONTACTS: z.preprocess(
+      blankToUndefined,
+      z.enum(["true", "false"]).default("true").transform((value) => value === "true"),
+    ),
   })
   .superRefine((env, ctx) => {
     if (env.SEARCH_PROVIDER !== "fixture" && !env.SEARCH_API_KEY) {

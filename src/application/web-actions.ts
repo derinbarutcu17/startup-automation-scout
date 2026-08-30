@@ -107,3 +107,22 @@ export async function updateScheduleAction(_previous: ActionState, formData: For
     return { error: friendlyError(error) };
   }
 }
+
+export async function updateSenderProfileAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const profile = z.object({
+      name: z.string().trim().min(1, "Sender name is required").max(120, "Sender name is too long"),
+      email: z.string().trim().email("Enter a valid sender email").max(254, "Sender email is too long"),
+      signature: z.string().max(2_000, "Signature is too long"),
+    }).parse({
+      name: formData.get("senderName"),
+      email: formData.get("senderEmail"),
+      signature: formData.get("senderSignature")?.toString() ?? "",
+    });
+    await setSetting("sender_profile", profile);
+    revalidatePath("/settings");
+    return {};
+  } catch (error) {
+    return { error: friendlyError(error) };
+  }
+}

@@ -1,0 +1,2 @@
+ALTER TABLE "outreach_approvals" DROP CONSTRAINT "outreach_approvals_fingerprint_unique";--> statement-breakpoint
+CREATE INDEX "outreach_approvals_fingerprint_idx" ON "outreach_approvals" USING btree ("prospect_dossier_id","content_fingerprint");

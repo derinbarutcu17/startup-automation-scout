@@ -58,6 +58,30 @@ One bounded execution of the discovery, research, analysis, ranking, and reporti
 
 The structured research result for one Company. It contains Source Documents, Claims, confidence, Recent Signals, known unknowns, and enough context to evaluate Workflow Hypotheses.
 
+## Person Profile
+
+A public or explicitly authorized professional identity associated with a Company, including role context, public profile links, and provenance. A Person Profile is not a general personal profile and must not include sensitive-category inferences.
+
+## Contact Point
+
+A public or explicitly authorized professional contact channel associated with a Company or Person Profile. A Contact Point always records its source, freshness, confidence, and eligibility status. The Scout must never guess an email address from a naming pattern.
+
+## Prospect Dossier
+
+An optional company-level artifact that combines a Research Dossier and selected Automation Opportunities with researched Person Profiles, Contact Points, Outreach Angles, reviewed message drafts, open questions, and a source ledger. It is a preparation artifact, not proof that a person has consented to contact or that an outreach claim is true.
+
+## Outreach Angle
+
+An evidence-backed message thesis connecting a specific Automation Opportunity to a relevant Company or Person Profile. It is a relevance hypothesis and must not be presented as proof that the target person experiences the proposed pain.
+
+## Outreach Sequence
+
+A bounded set of draft-only email steps built from one Outreach Angle. Each step has a purpose, a single low-friction call to action, evidence references, and a human review state. An Outreach Sequence does not send messages or schedule contact.
+
+## Hermes Handoff Bundle
+
+A versioned Markdown and JSON export of a Prospect Dossier, including its source ledger, uncertainty labels, contact status, and draft state, prepared for inspection by another agent. The bundle is source material and is not authorization to send or perform external actions.
+
 ## Review Decision
 
 A human judgment on a Company or Automation Opportunity, such as shortlist, reject, investigate, prototype, or archive. Review Decisions become feedback for evaluation but do not silently alter historical evidence.

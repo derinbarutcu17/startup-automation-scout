@@ -1,6 +1,6 @@
 # Startup Automation Scout
 
-Status: **runnable MVP, fixture providers enabled by default**
+Status: **runnable MVP with a fixture-first Prospect Dossier extension**
 
 Startup Automation Scout is an evidence-first research workbench for finding
 promising early-stage startups, understanding their public operating signals,
@@ -47,6 +47,22 @@ The intended funnel is approximately:
 These numbers are initial operating targets, not hard product truths. The
 current fixture evaluation does not validate the 20-company human-reviewed
 golden benchmark described in `docs/EVALUATION.md`.
+
+The optional Prospect Dossier workspace continues from one reviewed
+opportunity:
+
+```text
+reviewed opportunity
+  -> bounded professional person research
+  -> company-specific outreach angles
+  -> draft-only email sequence
+  -> redacted Hermes Markdown/JSON bundle
+  -> optional exact-content Gmail drafts
+```
+
+This extension is human-controlled. It stores source-backed professional
+research, never guesses email addresses, does not scrape or message LinkedIn,
+and has no send, inbox, scheduling, or CRM path.
 
 ## Run locally
 
@@ -97,11 +113,15 @@ public company URL -> durable ScoutRun -> research dossier
   -> deterministic scorecard -> human review
 ```
 
-The MVP stores source versions, evidence, epistemic claim types, unknowns,
+The core MVP stores source versions, evidence, epistemic claim types, unknowns,
 signals, budget diagnostics, score rationales and append-only review decisions.
-It does not send outreach, access private company systems, or generate a
-20-company reliability claim. CSV ingestion exists as an application service;
-the user-facing intake is currently a URL or domain form.
+It does not access private company systems or generate a 20-company reliability
+claim. The optional Prospect Dossier extension can research public professional
+contacts, prepare evidence-linked drafts, export a redacted Hermes handoff, and
+create Gmail drafts only after explicit approval. It never sends outreach,
+reads an inbox, schedules follow-ups, or mutates a CRM. CSV ingestion exists as
+an application service; the user-facing intake is currently a URL or domain
+form.
 
 ## Key product principles
 
@@ -137,4 +157,10 @@ the user-facing intake is currently a URL or domain form.
 
 ## Project boundary
 
-The first release ends at a human-reviewed opportunity shortlist. Automatic cold outreach, autonomous client contact, automatic prototype generation, private company-system access, and legal/compliance determinations are outside the MVP.
+The core release ends at a human-reviewed opportunity shortlist. The optional
+Prospect Dossier release adds preparation after that shortlist, but still ends
+at a human-reviewed draft or an explicitly created Gmail draft. Automatic cold
+outreach, autonomous client contact, inbox access, follow-up scheduling,
+automatic prototype generation, private company-system access, and
+legal/compliance determinations remain outside the product. Gmail OAuth is
+blocked in production until an owner-authentication boundary is added.

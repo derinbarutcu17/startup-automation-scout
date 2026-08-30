@@ -305,4 +305,6 @@ This is necessary both for debugging and for proving whether the Scout saves res
 - outbound URLs are validated before fetching;
 - private-network and local-file targets are denied by the retrieval layer;
 - rendered research text is escaped/sanitized by the application framework;
-- no external message-sending tools are available to the MVP worker.
+- no external message-sending or mailbox tools are available to the MVP worker;
+  the optional Gmail integration is a separate application-level create-draft
+  boundary after explicit approval.

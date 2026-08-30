@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isBlockedIp, validateOutboundUrl } from "@/src/infrastructure/retrieval/safe-http";
 
 describe("safe retrieval boundary", () => {
-  it.each(["127.0.0.1", "10.2.3.4", "172.16.0.4", "192.168.1.2", "169.254.4.2", "::1", "fc00::1", "fe80::1"]) ("blocks private target %s", (ip) => {
+  it.each(["127.0.0.1", "10.2.3.4", "172.16.0.4", "192.168.1.2", "169.254.4.2", "::1", "::ffff:127.0.0.1", "fc00::1", "fe80::1"]) ("blocks private target %s", (ip) => {
     expect(isBlockedIp(ip)).toBe(true);
   });
 

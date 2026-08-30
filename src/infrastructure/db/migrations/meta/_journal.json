@@ -15,6 +15,27 @@
       "when": 1788042780420,
       "tag": "0001_military_albert_cleary",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788088204892,
+      "tag": "0002_large_spitfire",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788091618227,
+      "tag": "0003_sleepy_fantastic_four",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788095864875,
+      "tag": "0004_ancient_nightcrawler",
+      "breakpoints": true
     }
   ]
 }

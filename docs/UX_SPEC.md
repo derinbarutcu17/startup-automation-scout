@@ -155,7 +155,10 @@ Primary human actions:
 - archive;
 - add note.
 
-No contact action exists in MVP.
+The core MVP has no contact action. A reviewed opportunity may open the
+separate Prospect Dossier workspace, where the owner can prepare source-backed
+drafts and optionally create reviewed Gmail drafts. It cannot send or schedule
+messages.
 
 ## 5. Weekly Report
 

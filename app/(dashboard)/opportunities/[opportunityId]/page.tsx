@@ -5,6 +5,7 @@ import { BackLink, EmptyState, EpistemicLabel, EvidenceLine, PageHeading, Sectio
 import { ReviewForm } from "@/src/ui/review-form";
 import { Icon } from "@/src/ui/icons";
 import { opportunityWeights } from "@/src/domain/scoring";
+import { prepareOutreachAction } from "@/src/application/prospect-web-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
   const { opportunity, hypothesis, gate, scorecard, company, dossier, reviews } = data;
   const evidenceLinks = dossier?.evidenceLinks.filter((row) => hypothesis.evidenceItemIds.includes(row.evidence.id)) ?? [];
   const currentDecision = reviews[0]?.decision ?? null;
+  const outreachReady = Boolean(gate?.passed && (currentDecision === "investigate" || currentDecision === "prototype"));
   return (
     <main className="page-shell">
       <BackLink href="/opportunities">Opportunity ledger</BackLink>
@@ -31,6 +33,20 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
         <aside className="detail-aside">
           <section className="panel panel-dark"><div className="panel-header"><div><h2>Recommendation state</h2><p>Human review is the release gate.</p></div><Icon name="shield" size={18} /></div><div className="panel-body"><div className="inline-meta"><StatusBadge value={gate?.passed ? "gate passed" : "gate rejected"} tone={gate?.passed ? "success" : "danger"} /><StatusBadge value={opportunity.rankingConfidence} tone="info" /></div><div className="dark-score">{scorecard ? <><strong>{scorecard.totalScore}</strong><span>/ 100</span></> : <><strong>--</strong><span>not scored</span></>}</div><p className="dark-copy">{gate?.passed ? "This proposal can be ranked, but its assumptions still need a human check." : `This proposal is preserved but held by: ${gate?.failureCodes.join(", ") || "an incomplete gate"}.`}</p></div></section>
           <section className="detail-section" aria-labelledby="review-title"><SectionHeading title="Record a decision" detail="This creates a new history entry." /><ReviewForm opportunityId={opportunity.id} currentDecision={currentDecision} /></section>
+          <section className="detail-section">
+            <SectionHeading title="Prepare outreach" detail="Draft-only. No sending. Requires investigate or prototype." />
+            {outreachReady ? (
+              <form action={prepareOutreachAction}>
+                <input type="hidden" name="companyId" value={company.id} />
+                <input type="hidden" name="opportunityId" value={opportunity.id} />
+                <p style={{ color: "var(--ink-soft)", fontSize: 12, margin: "0 0 10px" }}>Bounded research: up to 3 persons, public sources only, no LinkedIn scrape, no guessed emails. Nothing will be sent.</p>
+                <button className="button button-primary" type="submit">Prepare outreach → Prospect dossier</button>
+              </form>
+            ) : (
+              <div className="callout"><p>{!gate?.passed ? "The quality gate must pass before outreach can be prepared." : <>Mark this opportunity <strong>investigate</strong> or <strong>prototype</strong> to enable Prepare outreach.</>} This keeps outreach bounded and human-controlled.</p></div>
+            )}
+            <p style={{ marginTop: 10 }}><Link className="button button-quiet" href="/prospects">View prospect dossiers</Link></p>
+          </section>
           {scorecard && <section className="detail-section" aria-labelledby="score-title"><SectionHeading title="Score breakdown" detail={`Rubric ${scorecard.rubricVersion}`} /><div className="score-grid">{Object.entries(scorecard.dimensionValues).map(([key, value]) => { const max = opportunityWeights[key as keyof typeof opportunityWeights] ?? 1; const weighted = (value / 4) * max; return <div className="score-row" key={key}><div className="score-row-head"><strong>{dimensionLabels[key] ?? key}</strong><span>{value} / 4 · {weighted.toFixed(1)} pts</span></div><div className="score-bar"><span style={{ width: `${(value / 4) * 100}%` }} /></div><p>{scorecard.dimensionRationales[key] ?? "No rationale recorded."}</p></div>; })}</div></section>}
           <section className="detail-section" aria-labelledby="access-title"><SectionHeading title="Buildability" detail="The access boundary is explicit." /><span className="queue-label">Buildability</span><div className="inline-meta"><StatusBadge value={opportunity.buildability} tone={opportunity.buildability === "high" ? "success" : "warning"} /><EpistemicLabel type={opportunity.evidenceStrength === "high" ? "verified" : "inferred"} /></div><h3>Integrations</h3>{opportunity.requiredIntegrations.length ? <div className="tag-row">{opportunity.requiredIntegrations.map((item) => <span className="tag" key={item}>{item}</span>)}</div> : <p>None specified.</p>}<h3>Private access required</h3>{opportunity.requiredPrivateAccess.length ? <div className="tag-row">{opportunity.requiredPrivateAccess.map((item) => <span className="tag" key={item}>{item}</span>)}</div> : <p>None specified.</p>}<h3>Risks</h3>{opportunity.risks.length ? <ul className="unknown-list">{opportunity.risks.map((risk) => <li key={risk}>{risk}</li>)}</ul> : <p>No risks recorded.</p>}</section>
           {dossier?.sources.length ? <section className="detail-section"><SectionHeading title="Source trail" detail={`${dossier.sources.length} dossier sources`} /><div className="source-list">{dossier.sources.map((source) => <SourceCitation key={source.id} url={source.canonicalUrl} title={source.title} tier={source.sourceTier} fetchedAt={source.fetchedAt} stale={isStale(source.fetchedAt)} />)}</div></section> : null}

@@ -8,6 +8,7 @@ const links = [
   { href: "/scout-runs", label: "Scout Runs", icon: "pulse" as const },
   { href: "/companies", label: "Companies", icon: "building" as const },
   { href: "/opportunities", label: "Opportunities", icon: "spark" as const },
+  { href: "/prospects", label: "Prospects", icon: "stack" as const },
   { href: "/reviews", label: "Reviews", icon: "book" as const },
   { href: "/settings", label: "Settings", icon: "settings" as const },
 ];

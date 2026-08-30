@@ -14,6 +14,8 @@ function ipv4Blocked(ip: string): boolean {
 
 function ipv6Blocked(ip: string): boolean {
   const normalized = ip.toLowerCase();
+  const mappedIpv4 = normalized.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
+  if (mappedIpv4) return ipv4Blocked(mappedIpv4[1]);
   return normalized === "::1" || normalized === "::" || normalized.startsWith("fe8") || normalized.startsWith("fe9") || normalized.startsWith("fea") || normalized.startsWith("feb") || normalized.startsWith("fc") || normalized.startsWith("fd") || normalized.startsWith("ff");
 }
 

@@ -9,11 +9,17 @@ Future coding agents working in this project should read, in order:
 5. relevant files in `docs/adr/`
 6. `IMPLEMENTATION_PLAN.md`
 
+For the approved prospecting extension, also read:
+
+7. `docs/OUTREACH_DOSSIER_IMPLEMENTATION_PLAN.md`
+
 Project-specific rules:
 
 - preserve the distinction between Verified, Inferred, Estimated, and Unknown data;
 - do not introduce a source connector without documenting access constraints in `SOURCE_STRATEGY.md`;
-- do not add automatic outreach without a new explicit product decision and user authorization;
+- keep the implemented outreach extension draft-only, source-backed, and
+  human-controlled; do not add sending, LinkedIn automation, inbox access, or
+  CRM mutation without a separate product decision and user authorization;
 - keep provider-specific concepts out of canonical domain vocabulary;
 - test through the highest useful module interface rather than implementation internals;
 - prefer deterministic logic for gates, state, scoring, budgets, and validation;

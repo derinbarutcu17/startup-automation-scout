@@ -29,6 +29,15 @@ const pages: Record<string, FixturePage> = {
     sourceTier: "tier_1",
     text: "2026-07-12: BerlinFlow launched a carrier exception rules feature with webhook notifications.",
   },
+  "https://fixtures.scout.test/berlinflow/team": {
+    url: "https://fixtures.scout.test/berlinflow/team",
+    title: "BerlinFlow Team",
+    sourceTier: "tier_1",
+    text: [
+      "BerlinFlow team: Ava Richter, Head of Operations, owns exception review and dispatch coordination. Contact: ava.richter@berlinflow.example.",
+      "Jonas Keller is Logistics Lead. Mira Chen is Carrier Ops Manager.",
+    ].join("\n"),
+  },
   "https://fixtures.scout.test/quietstack/about": {
     url: "https://fixtures.scout.test/quietstack/about",
     title: "QuietStack",
@@ -296,6 +305,106 @@ function modelOutput(taskType: StructuredTaskType, input: unknown): unknown {
     };
   }
   if (taskType === "genericness_critic") return { generic: body.includes("generic customer-support chatbot"), reason: "Fixture semantic critic" };
+  if (taskType === "people_candidates") {
+    if (body.includes("Ava Richter") || body.includes("BerlinFlow team")) {
+      return {
+        candidates: [
+          { fullName: "Ava Richter", roleTitle: "Head of Operations", function: "operations", seniority: "head", profileUrl: "https://fixtures.scout.test/berlinflow/team#ava-richter", contactValue: "ava.richter@berlinflow.example", sourceLocator: "team page", confidence: "high" },
+          { fullName: "Jonas Keller", roleTitle: "Logistics Lead", function: "logistics", seniority: "lead", profileUrl: "https://www.linkedin.com/in/jonas-keller-berlinflow", sourceLocator: "team page", confidence: "medium" },
+        ],
+      };
+    }
+    return { candidates: [] };
+  }
+  if (taskType === "outreach_angle") {
+    if (body.includes("INJECT_GENERIC")) {
+      return {
+        title: "Generic efficiency boost",
+        thesis: "We help companies be more efficient.",
+        verifiedSignal: "Company exists",
+        workflowHypothesis: "Unknown workflow may benefit from automation",
+        relevanceReason: "Role might be relevant",
+        valueHypothesis: "Save €5000 per month",
+        callToAction: "Book a 60 min sales call now",
+        evidenceIds: [],
+        claimIds: [],
+        personClaimIds: [],
+        assumptions: [],
+        alternativeExplanations: [],
+        confirmationQuestions: ["Is this generic?"],
+        confidence: "low",
+      };
+    }
+    if (body.includes("BerlinFlow") || body.includes("shipment") || body.includes("exception")) {
+      return [
+        {
+          title: "Carrier exception triage for Ops",
+          thesis: "Operators likely review shipment exceptions before dispatch. A rules check plus a small validation question may reduce triage load.",
+          verifiedSignal: "BerlinFlow public page states operators review shipment exceptions before dispatch updates (tier_1).",
+          workflowHypothesis: "Operators classify carrier exceptions and draft dispatch updates.",
+          relevanceReason: "Head of Operations plausibly owns exception handling quality and throughput.",
+          valueHypothesis: "If triage is repeated, a small preflight check could reduce manual review without promising savings.",
+          callToAction: "Would it be useful to see a one-page check on which exception categories still need judgment?",
+          evidenceIds: ["__EVIDENCE__"],
+          claimIds: ["__CLAIM__"],
+          personClaimIds: [],
+          assumptions: ["Some exceptions still need human classification"],
+          alternativeExplanations: ["Carrier rules may already automate most categories"],
+          confirmationQuestions: ["Which exception categories still require manual judgment?"],
+          confidence: "medium",
+        },
+        {
+          title: "Carrier rule validation for Logistics",
+          thesis: "The changelog points to carrier exception rules and webhook notifications. A focused review could test whether edge cases still reach operators.",
+          verifiedSignal: "BerlinFlow published a carrier exception rules feature with webhook notifications (tier_1).",
+          workflowHypothesis: "Logistics owners inspect the boundary between automated carrier rules and manual exception handling.",
+          relevanceReason: "A Logistics Lead can validate whether rule coverage or edge-case review is the current constraint.",
+          valueHypothesis: "A synthetic edge-case check could clarify coverage before any larger automation proposal.",
+          callToAction: "Would a short synthetic edge-case example help test where the rules hand off to a person?",
+          evidenceIds: ["__EVIDENCE__"],
+          claimIds: ["__CLAIM__"],
+          personClaimIds: [],
+          assumptions: ["Some carrier events still need manual review"],
+          alternativeExplanations: ["The new rules may already cover the important edge cases"],
+          confirmationQuestions: ["Where do carrier rules currently hand off to an operator?"],
+          confidence: "medium",
+        },
+      ];
+    }
+    return {
+      title: "Workflow check for Ops",
+      thesis: "Public workflow signal suggests a check on repeated manual steps.",
+      verifiedSignal: "Verified workflow signal from company page.",
+      workflowHypothesis: "Operators handle repeated review steps.",
+      relevanceReason: "Ops role plausibly relevant.",
+      valueHypothesis: "A targeted check could validate whether automation fits.",
+      callToAction: "Open to a brief validation question?",
+      evidenceIds: ["__EVIDENCE__"],
+      claimIds: ["__CLAIM__"],
+      personClaimIds: [],
+      assumptions: ["Workflow has repeated manual work"],
+      alternativeExplanations: ["Manual work may be minimal"],
+      confirmationQuestions: ["What is still manual?"],
+      confidence: "medium",
+    };
+  }
+  if (taskType === "draft_compose") {
+    if (body.includes("INJECT_UNSUPPORTED")) {
+      return {
+        drafts: [
+          { stepNumber: 1, purpose: "initial", subject: "Save €10k/month with BerlinFlow", body: "Hello, I noticed you save €10k/month and we discussed before...", evidenceIds: ["__EVIDENCE__"], claimIds: ["__CLAIM__"], personalizationNotes: "Generic draft" },
+        ],
+      };
+    }
+    // Normal fixture returns 3-step sequence
+    return {
+      drafts: [
+        { stepNumber: 1, purpose: "observation", subject: "Question on BerlinFlow exception review", body: "Hi Ava — I noticed BerlinFlow operators review shipment exceptions before dispatch updates. I suspect that still creates repeated triage. Would a one-page preflight check on exception categories be useful to validate?", evidenceIds: ["__EVIDENCE__"], claimIds: ["__CLAIM__"], personalizationNotes: "References Verified location + workflow_signal" },
+        { stepNumber: 2, purpose: "useful follow-up", body: "Sharing the carrier exception rules note from 2026-07-12 — if useful, I can send a tiny synthetic example of routing.", subject: "Follow-up: carrier rules example", evidenceIds: ["__EVIDENCE__"], claimIds: ["__CLAIM__"], personalizationNotes: "Second evidence piece" },
+        { stepNumber: 3, purpose: "close-the-loop", subject: "Close the loop", body: "If not relevant, no worries — will close the loop. If the triage step is real, happy to share the check.", evidenceIds: ["__EVIDENCE__"], claimIds: ["__CLAIM__"], personalizationNotes: "Light close" },
+      ],
+    };
+  }
   return {};
 }
 
