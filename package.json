@@ -1,0 +1,55 @@
+{
+  "name": "startup-automation-scout",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "worker": "tsx src/worker/index.ts",
+    "worker:once": "tsx src/worker/index.ts --once",
+    "scheduler:once": "tsx src/worker/scheduler-cli.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/infrastructure/db/migrate.ts",
+    "db:reset-test": "tsx scripts/reset-test-db.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --exclude tests/integration/**",
+    "test:integration": "pnpm db:reset-test && vitest run tests/integration",
+    "test:all": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:integration && pnpm test:providers && pnpm test:security",
+    "test:providers": "vitest run tests/provider-contracts",
+    "test:security": "vitest run tests/security",
+    "e2e": "pnpm build && pnpm db:reset-test && playwright test",
+    "e2e:server": "concurrently -k -s first \"pnpm start\" \"pnpm worker\"",
+    "evaluate": "tsx src/evaluation/run.ts",
+    "audit": "tsx scripts/completeness-audit.ts",
+    "verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:integration && pnpm test:providers && pnpm test:security && pnpm evaluate && pnpm build"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.2",
+    "next": "16.3.3",
+    "pino": "10.3.1",
+    "postgres": "3.4.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "undici": "7.16.0",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@types/node": "24.3.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "concurrently": "9.2.1",
+    "drizzle-kit": "0.31.10",
+    "eslint": "9.35.0",
+    "eslint-config-next": "16.3.3",
+    "tsx": "4.20.5",
+    "typescript": "5.9.2",
+    "vitest": "4.1.11"
+  }
+}

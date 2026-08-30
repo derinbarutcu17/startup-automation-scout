@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>Startup Automation Scout</title>
+  <rect width="64" height="64" fill="#101827"/>
+  <rect x="15" y="15" width="34" height="34" fill="#d9ef4e"/>
+  <path d="M24 24h16v16H24zM29 29h6v6h-6z" fill="none" stroke="#101827" stroke-width="3"/>
+</svg>
