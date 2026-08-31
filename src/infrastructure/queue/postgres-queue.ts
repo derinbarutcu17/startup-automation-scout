@@ -111,10 +111,15 @@ export async function failWork(workItemId: string, input: {
     lastErrorMessage: input.message.slice(0, 2000),
     leaseOwner: null,
     leaseExpiresAt: null,
-    availableAt: mayRetry ? new Date(Date.now() + (input.retryDelayMs ?? Math.min(30_000, current.attemptCount * 500))) : current.availableAt,
+    availableAt: mayRetry ? new Date(Date.now() + (input.retryDelayMs ?? retryDelayMs(current.attemptCount))) : current.availableAt,
     updatedAt: new Date(),
   }).where(eq(workItems.id, workItemId)).returning();
   return row;
+}
+
+export function retryDelayMs(attemptCount: number, baseMs = 1_000, maxMs = 120_000): number {
+  const safeAttempt = Math.max(1, Math.floor(attemptCount));
+  return Math.min(maxMs, baseMs * (2 ** (safeAttempt - 1)));
 }
 
 export async function cancelPendingWork(runId: string): Promise<number> {

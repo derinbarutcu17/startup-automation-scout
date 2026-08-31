@@ -19,6 +19,7 @@ import {
   resolveManualCompany,
 } from "@/src/infrastructure/db/repositories";
 import { defaultRunConfiguration } from "@/src/application/configuration";
+import { importProductHuntSeeds } from "@/src/modules/product-hunt-seeds";
 
 export async function createScoutRun(
   configuration: RunConfiguration = defaultRunConfiguration(),
@@ -45,6 +46,11 @@ export async function importCompanyCsv(csvText: string, runId?: string) {
   const results = [];
   for (const seed of seeds) results.push(await addCompanySeed(seed, runId));
   return results;
+}
+
+export async function importBerlinProductHuntSeeds(csvText: string, runId: string) {
+  if (!(await getRun(runId))) throw new Error("ScoutRun not found");
+  return importProductHuntSeeds(csvText, runId);
 }
 
 export async function startScoutRun(runId: string) {

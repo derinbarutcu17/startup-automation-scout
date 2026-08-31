@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { defaultRunConfiguration } from "@/src/application/configuration";
-import { createScoutRun } from "@/src/application/scout-service";
-import { persistClaimWithEvidence, persistEvidenceItem, persistSourceDocument, recordReviewDecision, resolveManualCompany } from "@/src/infrastructure/db/repositories";
+import { createScoutRun, importBerlinProductHuntSeeds } from "@/src/application/scout-service";
+import { getCompany, persistClaimWithEvidence, persistEvidenceItem, persistSourceDocument, recordReviewDecision, resolveManualCompany } from "@/src/infrastructure/db/repositories";
 
 describe("repository invariants", () => {
+  it("stores Product Hunt seed provenance and SME metadata", async () => {
+    const run = await createScoutRun(defaultRunConfiguration());
+    const imported = await importBerlinProductHuntSeeds('product_name,company_domain,location,employee_count,product_hunt_url\nSeed Co,seed-co.example,"Berlin, Germany",40,https://www.producthunt.com/products/seed-co', run.id);
+    const company = await getCompany(imported[0]!.company.id);
+    expect(company?.canonicalName).toBe("Seed Co");
+    expect(company?.discoveries[0]).toMatchObject({ sourceType: "product_hunt_seed", metadata: expect.objectContaining({ employeeCount: 40, companySize: "small" }) });
+  });
+
   it("rejects a verified claim without evidence and accepts the supported path", async () => {
     const run = await createScoutRun(defaultRunConfiguration());
     const { company } = await resolveManualCompany(`https://repo-invariant-${run.id}.example`, run.id);

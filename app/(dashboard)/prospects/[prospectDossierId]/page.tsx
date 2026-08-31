@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { getDossierById, getOpportunityDetail } from "@/src/infrastructure/db/repositories";
 import { batchFingerprint, getProspectDossierDetail } from "@/src/infrastructure/db/repositories-prospect";
 import { getEnv } from "@/src/infrastructure/config/env";
-import { approveDraftsAction, confirmContactAction, createGmailDraftsAction, editDraftAction, generateAnglesAction, generateDraftsAction, inlinePeopleResearchAction, rejectContactAction } from "@/src/application/prospect-web-actions";
+import { approveDraftsAction, confirmContactAction, createGmailDraftsAction, editDraftAction, generateAnglesAction, generateDraftsAction, inlinePeopleResearchAction, rejectContactAction, sendProspectDossierToTelegramAction } from "@/src/application/prospect-web-actions";
 import { BackLink, EmptyState, EpistemicLabel, PageHeading, SectionHeading, SourceCitation, StatusBadge, formatDate, formatDateTime, isStale } from "@/src/ui/components";
 import { Icon } from "@/src/ui/icons";
 import { RefreshOnProgress } from "@/src/ui/refresh-on-progress";
+import { recommendDerinCapabilities } from "@/src/modules/derin-capabilities";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ export default async function ProspectDetailPage({ params }: { params: Promise<{
   const { dossier, persons, personClaims, personClaimEvidence, contacts, angles, drafts, approvals, gmailResults, jobs } = detail;
   const researchDossier = await getDossierById(dossier.researchDossierId);
   const opportunity = dossier.opportunityId ? await getOpportunityDetail(dossier.opportunityId) : null;
+  const capabilityOffers = recommendDerinCapabilities({ proposedSystem: opportunity?.opportunity.proposedSystem, angleText: angles.map((angle) => `${angle.title} ${angle.workflowHypothesis}`).join(" ") });
   const env = getEnv();
   const approvalRows = await Promise.all(approvals.map(async (approval) => {
     try {
@@ -136,7 +138,22 @@ export default async function ProspectDetailPage({ params }: { params: Promise<{
           </section>
 
           <section className="detail-section">
-            <SectionHeading title="6. Draft sequence" detail="Max 3 steps · one CTA each · review required" />
+            <SectionHeading title="6. What Derin can do" detail="Capability matches and proof links" />
+            {capabilityOffers.map((offer) => (
+              <div key={offer.capability} className="evidence-line">
+                <div className="evidence-marker" aria-hidden="true" />
+                <div className="evidence-body">
+                  <p><strong>{offer.capability}</strong></p>
+                  <p>{offer.whatDerinCanDo}</p>
+                  <p className="supporting-copy">Why it may fit: {offer.whyItMayFit}</p>
+                  <div className="tag-row">{offer.proofLinks.map((link) => <a className="tag" href={link} key={link} target="_blank" rel="noreferrer">Proof: {link.replace(/^https?:\/\//, "")}</a>)}</div>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          <section className="detail-section">
+            <SectionHeading title="7. Draft sequence" detail="Max 3 steps · one CTA each · review required" />
             {drafts.length ? drafts.map((d) => (
               <div key={d.id} style={{ borderTop: "1px solid var(--ink)", padding: "14px 0" }}>
                 <div className="inline-meta"><StatusBadge value={d.state} /><span className="tag">Step {d.stepNumber}</span><span className="tag">{d.purpose}</span><span className="tag">{d.contentFingerprint.slice(0, 8)}</span></div>
@@ -168,7 +185,7 @@ export default async function ProspectDetailPage({ params }: { params: Promise<{
           </section>
 
           <section className="detail-section">
-            <SectionHeading title="7. Job history" detail="Durable progress and failures" />
+            <SectionHeading title="8. Job history" detail="Durable progress and failures" />
             {jobs.length ? jobs.map((job) => (
               <div key={job.id} style={{ borderTop: "1px solid var(--line)", padding: "12px 0" }}>
                 <div className="inline-meta"><StatusBadge value={job.status} /><span className="tag">{job.jobType}</span><span className="tag">attempt {job.attemptCount}</span><span className="tag">{formatDateTime(job.createdAt)}</span></div>
@@ -179,7 +196,7 @@ export default async function ProspectDetailPage({ params }: { params: Promise<{
           </section>
 
           <section className="detail-section">
-            <SectionHeading title="8. Unknowns and questions to validate" />
+            <SectionHeading title="9. Unknowns and questions to validate" />
             <ul className="unknown-list">
               {(dossier.knownUnknowns as string[]).map((u) => <li key={u}>{u}</li>)}
               {(dossier.openQuestions as string[]).map((q) => <li key={q}>{q}</li>)}
@@ -188,12 +205,15 @@ export default async function ProspectDetailPage({ params }: { params: Promise<{
           </section>
 
           <section className="detail-section">
-            <SectionHeading title="9. Hermes export" detail="Markdown + JSON prospect-dossier.v1" />
+            <SectionHeading title="10. Hermes export" detail="Markdown + JSON + PDF prospect-dossier.v1" />
             <div style={{ display: "flex", gap: 9, flexWrap: "wrap" }}>
               <a className="button button-secondary" href={`/api/prospects/${prospectDossierId}/export?format=markdown`}>Download Markdown</a>
               <a className="button button-quiet" href={`/api/prospects/${prospectDossierId}/export?format=json`}>Download JSON</a>
+              <a className="button button-secondary" href={`/api/prospects/${prospectDossierId}/export?format=pdf&part=dossier`}>Download dossier PDF</a>
+              <a className="button button-quiet" href={`/api/prospects/${prospectDossierId}/export?format=pdf&part=outreach`}>Download outreach PDF</a>
+              {env.HERMES_TELEGRAM_DELIVERY_ENABLED ? <form action={sendProspectDossierToTelegramAction}><input type="hidden" name="prospectDossierId" value={prospectDossierId} /><button className="button button-primary" type="submit">Send PDFs to Telegram</button></form> : <span className="queue-label" style={{ alignSelf: "center" }}>Telegram delivery is disabled. Set HERMES_TELEGRAM_DELIVERY_ENABLED=true.</span>}
               {env.APP_ENV !== "production" && <><a className="button button-quiet" href={`/api/prospects/${prospectDossierId}/export?format=markdown&includeContacts=true`}>Private Markdown with verified contacts</a><a className="button button-quiet" href={`/api/prospects/${prospectDossierId}/export?format=json&includeContacts=true`}>Private JSON with verified contacts</a></>}
-              <span className="queue-label" style={{ alignSelf: "center" }}>Default downloads redact contacts. Private variants include only fresh source-verified or owner-confirmed contacts.</span>
+              <span className="queue-label" style={{ alignSelf: "center" }}>PDFs and Telegram delivery are redacted. Telegram delivery sends two files through Hermes after this explicit action.</span>
             </div>
             <p className="supporting-copy" style={{ marginTop: 10 }}>Fingerprint: <code>{dossier.contentFingerprint ?? "not exported yet"}</code></p>
             <details style={{ marginTop: 12 }}>
@@ -203,7 +223,7 @@ export default async function ProspectDetailPage({ params }: { params: Promise<{
           </section>
 
           <section className="detail-section">
-            <SectionHeading title="10. Gmail draft creation + approvals" detail="Exact-content approval → freshness + suppression recheck → draft-only" />
+            <SectionHeading title="11. Gmail draft creation + approvals" detail="Exact-content approval → freshness + suppression recheck → draft-only" />
             {drafts.length > 0 ? (
               <>
                 <form action={approveDraftsAction} style={{ border: "1px solid var(--line)", padding: 16 }}>
@@ -255,7 +275,7 @@ export default async function ProspectDetailPage({ params }: { params: Promise<{
             <div className="panel-body">
               <div className="inline-meta"><StatusBadge value={dossier.status} /><span className="tag">{researchDossier?.conclusion ?? ""}</span></div>
               {dossier.readinessReason && <p className="dark-copy" style={{ marginTop: 12 }}>{dossier.readinessReason}</p>}
-              <p className="dark-copy">This dossier never sends. It prepares source-linked angles and reviewed drafts for Hermes handoff and optional Gmail drafts after exact-content approval.</p>
+            <p className="dark-copy">This dossier does not send email. It prepares source-linked angles and reviewed drafts for Hermes handoff, optional Telegram PDF delivery, and optional Gmail drafts after exact-content approval.</p>
             </div>
           </section>
 

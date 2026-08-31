@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="396" viewBox="0 0 960 396" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+<rect width="960" height="396" fill="#020617"/>
+<defs><pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/></pattern><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker></defs>
+<rect width="960" height="396" fill="url(#g)"/>
+<text x="48" y="52" font-size="22" font-weight="700" fill="#e2e8f0">Live run evidence</text>
+<text x="48" y="80" font-size="13" fill="#94a3b8">retrieved sources (cyan) and verified-high claims (emerald), per company</text>
+<text x="48" y="128" font-size="14" fill="#e2e8f0">N8n</text>
+<rect x="250" y="110" width="49.6" height="26" rx="3" fill="#22d3ee"/>
+<rect x="303.6" y="110" width="471.2" height="26" rx="3" fill="#34d399"/>
+<text x="782.8" y="128" font-size="12" fill="#94a3b8">4 + 38</text>
+<text x="48" y="200" font-size="14" fill="#e2e8f0">Taktile</text>
+<rect x="250" y="182" width="62" height="26" rx="3" fill="#22d3ee"/>
+<rect x="316" y="182" width="421.6" height="26" rx="3" fill="#34d399"/>
+<text x="745.6" y="200" font-size="12" fill="#94a3b8">5 + 34</text>
+<text x="48" y="272" font-size="14" fill="#e2e8f0">Impargo</text>
+<rect x="250" y="254" width="99.2" height="26" rx="3" fill="#22d3ee"/>
+<rect x="353.2" y="254" width="520.8" height="26" rx="3" fill="#34d399"/>
+<text x="882" y="272" font-size="12" fill="#94a3b8">8 + 42</text>
+</svg>

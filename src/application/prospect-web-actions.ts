@@ -78,6 +78,22 @@ export async function generateDraftsAction(formData: FormData) {
   redirect(`/prospects/${dossierId}`);
 }
 
+export async function sendProspectDossierToTelegramAction(formData: FormData) {
+  const dossierId = requiredString(formData, "prospectDossierId");
+  const dossier = await getProspectDossier(dossierId);
+  if (!dossier) throw new Error("prospect_dossier_not_found");
+  await enqueueProspectJob({
+    prospectDossierId: dossier.id,
+    companyId: dossier.companyId,
+    opportunityId: dossier.opportunityId,
+    jobType: "handoff_export",
+    payload: { deliverToTelegram: true },
+  });
+  await drainInlineWorkerIfEnabled();
+  revalidatePath(`/prospects/${dossierId}`);
+  redirect(`/prospects/${dossierId}`);
+}
+
 export async function editDraftAction(formData: FormData) {
   const dossierId = requiredString(formData, "prospectDossierId");
   const draftId = requiredString(formData, "draftId");

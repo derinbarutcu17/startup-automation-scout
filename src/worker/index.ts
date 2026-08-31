@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { processWorkItem, StageProcessingError } from "@/src/application/orchestration";
 import { reconcileRun } from "@/src/application/scout-service";
-import { executeAngleGeneration, executeDraftGeneration, executePeopleResearch, exportProspectBundle } from "@/src/application/prospect-service";
+import { executeAngleGeneration, executeDraftGeneration, executePeopleResearch, exportProspectBundle, sendProspectBundleToTelegram } from "@/src/application/prospect-service";
 import { runConfigurationSchema } from "@/src/domain/types";
 import { getEnv } from "@/src/infrastructure/config/env";
 import { closeDb } from "@/src/infrastructure/db/client";
@@ -71,6 +71,9 @@ async function handleProspectJob(item: Awaited<ReturnType<typeof claimProspectJo
       if (typeof metadata.angleId !== "string" || typeof metadata.contactPointId !== "string") throw new Error("draft_job_metadata_missing");
       await executeDraftGeneration(item.prospectDossierId, metadata.angleId, metadata.contactPointId);
       output = { jobType: item.jobType, dossierId: item.prospectDossierId };
+    } else if (metadata.deliverToTelegram === true) {
+      const sent = await sendProspectBundleToTelegram(item.prospectDossierId);
+      output = { jobType: item.jobType, dossierId: item.prospectDossierId, delivery: sent.delivery };
     } else {
       output = await exportProspectBundle(item.prospectDossierId, { includeContacts: false });
     }

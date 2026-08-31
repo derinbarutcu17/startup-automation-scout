@@ -52,7 +52,16 @@ export async function createScoutRunRecord(configuration: RunConfiguration, sche
   return run;
 }
 
-export async function resolveManualCompany(urlOrDomain: string, scoutRunId?: string) {
+export async function resolveCompanySeed(input: {
+  urlOrDomain: string;
+  scoutRunId?: string;
+  sourceType?: string;
+  sourceUrl?: string;
+  externalIdentifier?: string;
+  rawName?: string;
+  metadata?: Record<string, unknown>;
+}) {
+  const urlOrDomain = input.urlOrDomain;
   const domain = normalizeDomain(urlOrDomain);
   const normalizedAlias = normalizeAlias(domain);
   const { db } = getDb();
@@ -61,8 +70,9 @@ export async function resolveManualCompany(urlOrDomain: string, scoutRunId?: str
     let [company] = await tx.select().from(companies).where(eq(companies.canonicalDomain, domain)).limit(1);
     if (!company) {
       [company] = await tx.insert(companies).values({
-        canonicalName: displayNameFromDomain(domain),
+        canonicalName: input.rawName?.trim() || displayNameFromDomain(domain),
         canonicalDomain: domain,
+        normalizedLocation: typeof input.metadata?.location === "string" ? input.metadata.location : null,
       }).returning();
       if (!company) throw new Error("Failed to create Company");
       created = true;
@@ -76,17 +86,29 @@ export async function resolveManualCompany(urlOrDomain: string, scoutRunId?: str
     }
 
     const [record] = await tx.insert(discoveryRecords).values({
-      scoutRunId,
+      scoutRunId: input.scoutRunId,
       companyId: company.id,
-      sourceType: "manual_url",
-      sourceUrl: /^[a-z][a-z\d+.-]*:\/\//i.test(urlOrDomain) ? urlOrDomain : `https://${domain}`,
-      rawName: company.canonicalName,
-      rawDomain: domain,
-      metadata: { canonicalDomain: domain },
+        sourceType: input.sourceType ?? "manual_url",
+        sourceUrl: input.sourceUrl ?? (/^[a-z][a-z\d+.-]*:\/\//i.test(urlOrDomain) ? urlOrDomain : `https://${domain}`),
+        externalIdentifier: input.externalIdentifier,
+        rawName: input.rawName?.trim() || company.canonicalName,
+        rawDomain: domain,
+      metadata: { canonicalDomain: domain, ...(input.metadata ?? {}) },
     }).returning();
     if (!record) throw new Error("Failed to create DiscoveryRecord");
     return { company, discoveryRecord: record, created };
   });
+}
+
+export async function resolveManualCompany(urlOrDomain: string, scoutRunId?: string) {
+  return resolveCompanySeed({ urlOrDomain, scoutRunId });
+}
+
+export async function listDiscoveryRecordsForCompany(companyId: string, scoutRunId?: string) {
+  const { db } = getDb();
+  const conditions = [eq(discoveryRecords.companyId, companyId)];
+  if (scoutRunId) conditions.push(eq(discoveryRecords.scoutRunId, scoutRunId));
+  return db.select().from(discoveryRecords).where(and(...conditions)).orderBy(desc(discoveryRecords.discoveredAt));
 }
 
 export async function listRunCompanyIds(runId: string): Promise<string[]> {

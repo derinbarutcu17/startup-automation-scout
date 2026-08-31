@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a bug in the Scout pipeline or dashboard
+title: "[Bug]: "
+labels: [bug]
+projects: []
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you expect, and what actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Steps to reproduce. Include the seed input and any error output.
+      placeholder: |
+        1. Run `pnpm scout:product-hunt -- data/product-hunt-berlin.csv`
+        2. ...
+        3. Error: ...
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Attach logs, DB queries, or screenshots that back the report.
+    validations:
+      required: false
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Pipeline stage
+      description: Which stage failed (if known)?
+      options:
+        - identity
+        - eligibility
+        - research
+        - evidence
+        - workflow_hypothesis
+        - opportunity
+        - quality_gate
+        - scoring
+        - prospect
+        - not sure
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Node version, pnpm version, PostgreSQL version, provider config.
+      value: |
+        - Node:
+        - pnpm:
+        - PostgreSQL:
+        - SEARCH_PROVIDER / MODEL_PROVIDER:
+    validations:
+      required: false

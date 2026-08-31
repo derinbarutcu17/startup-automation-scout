@@ -51,6 +51,11 @@ export const runConfigurationSchema = z.object({
   reasoningModelId: z.string().min(1),
   targetCandidateCount: z.number().int().positive(),
   shortlistSize: z.number().int().min(1).max(3).default(3),
+  companySizePolicy: z.enum(["any", "small_or_medium"]).default("any"),
+  maxEmployeeCount: z.number().int().positive().default(500),
+  requireCompanySizeEvidence: z.boolean().default(false),
+  excludedCompanyNames: z.array(z.string()).default([]),
+  excludedCompanyDomains: z.array(z.string()).default([]),
   budget: runBudgetSchema,
 });
 export type RunConfiguration = z.infer<typeof runConfigurationSchema>;

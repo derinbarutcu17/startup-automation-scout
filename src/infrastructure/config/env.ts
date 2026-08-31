@@ -17,8 +17,9 @@ export const envSchema = z
     DATABASE_URL: z.string().url().default("postgres://scout:scout@127.0.0.1:5432/scout"),
     APP_BASE_URL: z.string().url().default("http://127.0.0.1:3000"),
     APP_ENV: z.enum(["development", "test", "production"]).default("development"),
-    SEARCH_PROVIDER: z.enum(["fixture", "brave"]).default("fixture"),
+    SEARCH_PROVIDER: z.enum(["fixture", "brave", "ddg"]).default("fixture"),
     SEARCH_API_KEY: z.preprocess(blankToUndefined, z.string().min(1).optional()),
+    SEARXNG_INSTANCE_URLS: z.string().default("https://metasearx.com,https://search.sapti.me"),
     MODEL_PROVIDER: z.enum(["fixture", "openai_compatible"]).default("fixture"),
     MODEL_API_KEY: z.preprocess(blankToUndefined, z.string().min(1).optional()),
     MODEL_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
@@ -29,10 +30,11 @@ export const envSchema = z
     DEFAULT_RUN_MAX_MODEL_SPEND: nonNegativeNumber(4),
     DEFAULT_RUN_MAX_DEEP_COMPANIES: positiveInt(5),
     DEFAULT_RUN_MAX_RUNTIME_SECONDS: positiveInt(900),
-    DEFAULT_RUN_MAX_RETRIES: z.preprocess(blankToUndefined, z.coerce.number().int().min(0).default(2)),
+    DEFAULT_RUN_MAX_RETRIES: z.preprocess(blankToUndefined, z.coerce.number().int().min(0).default(5)),
     RETRIEVAL_MAX_BYTES: positiveInt(1_000_000),
     RETRIEVAL_TIMEOUT_MS: positiveInt(12_000),
-    RETRIEVAL_USER_AGENT: z.string().min(1).default("StartupAutomationScout/0.1 (+local research tool)"),
+    RETRIEVAL_USER_AGENT: z.string().min(1).default("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"),
+    MODEL_USER_AGENT: z.string().min(1).default("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"),
     WORKER_CONCURRENCY: positiveInt(2),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
     RUN_INLINE_WORKER: z.preprocess(
@@ -60,10 +62,17 @@ export const envSchema = z
       blankToUndefined,
       z.enum(["true", "false"]).default("true").transform((value) => value === "true"),
     ),
+    HERMES_TELEGRAM_DELIVERY_ENABLED: z.preprocess(
+      blankToUndefined,
+      z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
+    ),
+    HERMES_TELEGRAM_TARGET: z.string().regex(/^telegram(?::[A-Za-z0-9_:@-]+)?$/).default("telegram"),
+    HERMES_CLI_PATH: z.string().min(1).default("hermes"),
+    HERMES_DELIVERY_DIRECTORY: z.string().min(1).default("./output/telegram"),
   })
   .superRefine((env, ctx) => {
-    if (env.SEARCH_PROVIDER !== "fixture" && !env.SEARCH_API_KEY) {
-      ctx.addIssue({ code: "custom", path: ["SEARCH_API_KEY"], message: "required for live search provider" });
+    if (env.SEARCH_PROVIDER === "brave" && !env.SEARCH_API_KEY) {
+      ctx.addIssue({ code: "custom", path: ["SEARCH_API_KEY"], message: "required for brave search provider" });
     }
     if (env.MODEL_PROVIDER !== "fixture" && !env.MODEL_API_KEY) {
       ctx.addIssue({ code: "custom", path: ["MODEL_API_KEY"], message: "required for live model provider" });

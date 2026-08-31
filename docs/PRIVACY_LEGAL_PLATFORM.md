@@ -48,7 +48,7 @@ of authority or personal pain.
 
 Professional email values are encrypted at rest and redacted from default
 Hermes exports, source text, logs, diagnostics, and browser read models. The
-extension creates no send, inbox, scheduling, or CRM operation. Gmail OAuth is
+extension creates no email send, inbox, scheduling, or CRM operation. Gmail OAuth is
 blocked in production until an owner-authentication boundary is implemented.
 
 ## Robots and Site Terms
@@ -87,12 +87,15 @@ Engineering defaults:
 ## External Actions
 
 The core Scout is research-only. The optional Prospect Dossier extension stops
-at a human-reviewed draft or an explicitly created Gmail draft and does not
-send, schedule, or read messages.
+at a human-reviewed draft or an explicitly created Gmail draft for email. It
+also supports an owner-triggered delivery of redacted dossier PDFs to the
+owner's configured Hermes Telegram home chat. It does not send email, schedule
+email, read messages, or contact prospects.
 
 Explicit human approval is required before any future feature can:
 
 - send email;
+- deliver a dossier PDF to the owner's private Telegram chat;
 - send social messages;
 - create CRM records in external systems;
 - publish a claim;

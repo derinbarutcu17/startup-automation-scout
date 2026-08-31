@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { getEnv } from "@/src/infrastructure/config/env";
 import type { HermesBundle } from "@/src/domain/outreach-types";
+import type { DerinCapabilityOffer } from "@/src/modules/derin-capabilities";
 
 export interface ExportInput {
   dossier: {
@@ -21,6 +22,7 @@ export interface ExportInput {
   };
   company: { id: string; canonicalName: string; canonicalDomain: string };
   opportunity?: { id: string; proposedSystem: string } | null;
+  capabilityOffers?: DerinCapabilityOffer[];
   persons: Array<{ id: string; fullName: string; roleTitle?: string | null; profileUrl?: string | null; status: string; lastVerifiedAt: string | Date | null }>;
   contacts: Array<{ id: string; channelType: string; displayValue: string; normalizedValue: string; status: string; lastCheckedAt: string | Date | null; encryptedValue?: string | null }>;
   personClaims?: Array<{ id: string; personProfileId: string; subject: string; claimText: string; claimType: string; confidence: string; reasoningSummary?: string | null; alternativeExplanation?: string | null; confirmationQuestion?: string | null; evidenceIds?: string[] }>;
@@ -90,6 +92,7 @@ export function exportProspectDossier(input: ExportInput): HermesBundle {
   };
   const safeCompany = { ...input.company, canonicalName: redact(input.company.canonicalName), canonicalDomain: redact(input.company.canonicalDomain) };
   const safeOpportunity = input.opportunity ? { ...input.opportunity, proposedSystem: redact(input.opportunity.proposedSystem) } : null;
+  const capabilityOffers = (input.capabilityOffers ?? []).map((offer) => ({ ...offer, capability: redact(offer.capability), whatDerinCanDo: redact(offer.whatDerinCanDo), whyItMayFit: redact(offer.whyItMayFit) }));
   const safePersons = input.persons.map((person) => ({ ...person, fullName: redact(person.fullName), roleTitle: person.roleTitle ? redact(person.roleTitle) : person.roleTitle, profileUrl: person.profileUrl ? redact(person.profileUrl) : person.profileUrl }));
   const safePersonClaims = (input.personClaims ?? []).map((claim) => ({
     ...claim,
@@ -162,6 +165,7 @@ export function exportProspectDossier(input: ExportInput): HermesBundle {
     },
     company: safeCompany,
     opportunity: safeOpportunity,
+    capabilityOffers,
     persons: safePersons.map((p) => ({ id: p.id, fullName: p.fullName, roleTitle: p.roleTitle ?? null, profileUrl: p.profileUrl ?? null, status: p.status, lastVerifiedAt: p.lastVerifiedAt })),
     personClaims: safePersonClaims,
     contacts: redactedContacts,
@@ -227,6 +231,15 @@ export function exportProspectDossier(input: ExportInput): HermesBundle {
     mdLines.push("");
   }
   if (!safeAngles.length) mdLines.push("No angles yet.");
+  mdLines.push("## What Derin can do for this company");
+  for (const offer of capabilityOffers) {
+    mdLines.push(`### ${offer.capability}`);
+    mdLines.push(`What Derin can do: ${offer.whatDerinCanDo}`);
+    mdLines.push(`Why it may fit: ${offer.whyItMayFit}`);
+    mdLines.push(`Proof: ${offer.proofLinks.join(", ")}`);
+  }
+  if (!capabilityOffers.length) mdLines.push("No capability recommendations yet.");
+  mdLines.push("");
   mdLines.push("## Drafts");
   for (const d of safeDrafts) {
     mdLines.push(`### Step ${d.stepNumber}: ${d.purpose} (${d.state})`);

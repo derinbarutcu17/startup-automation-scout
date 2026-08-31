@@ -17,13 +17,18 @@ export function defaultRunConfiguration(): RunConfiguration {
     reasoningModelId: env.MODEL_REASONING_MODEL,
     targetCandidateCount: 10,
     shortlistSize: 3,
+    companySizePolicy: "small_or_medium",
+    maxEmployeeCount: 500,
+    requireCompanySizeEvidence: false,
+    excludedCompanyNames: ["n8n", "sumup", "taxfix", "zenjob"],
+    excludedCompanyDomains: ["n8n.io", "sumup.com", "taxfix.de", "zenjob.com"],
     budget: {
       maxEur: env.DEFAULT_RUN_MAX_EUR,
       maxSearchRequests: env.DEFAULT_RUN_MAX_SEARCH_REQUESTS,
       maxModelSpendEur: env.DEFAULT_RUN_MAX_MODEL_SPEND,
       maxDeepCompanies: env.DEFAULT_RUN_MAX_DEEP_COMPANIES,
       maxRuntimeSeconds: env.DEFAULT_RUN_MAX_RUNTIME_SECONDS,
-      maxRetriesPerWorkItem: env.DEFAULT_RUN_MAX_RETRIES,
+      maxRetriesPerWorkItem: Math.max(5, env.DEFAULT_RUN_MAX_RETRIES),
     },
   };
 }

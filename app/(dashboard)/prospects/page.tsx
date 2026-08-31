@@ -18,7 +18,7 @@ export default async function ProspectsPage() {
     <main className="page-shell">
       <PageHeading
         title="Prospect dossiers"
-        description="Company + opportunity preparation for outreach. Draft-only — no sending."
+        description="Company + opportunity preparation for outreach. Email remains draft-only; Telegram PDF delivery is owner-triggered."
       />
       {prospects.length ? (
         <div className="run-table-wrap">

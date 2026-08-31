@@ -1,10 +1,16 @@
 import type { z } from "zod";
+import { toJSONSchema } from "zod";
 import type { ModelProvider, StructuredTaskType } from "@/src/providers/contracts";
 import type { ProviderResult } from "@/src/domain/types";
 import { getEnv } from "@/src/infrastructure/config/env";
 
 function schemaForPrompt(schema: z.ZodType<unknown>): string {
-  return `Return one JSON value matching the requested task schema. The application validates it with Zod. Do not include markdown. Schema description: ${String(schema.description ?? "structured task output")}`;
+  const jsonSchema = toJSONSchema(schema);
+  return [
+    `Return one JSON value matching the requested task schema. The application validates it with Zod. Do not include markdown.`,
+    `Full JSON Schema of the required response:`,
+    JSON.stringify(jsonSchema, null, 2),
+  ].join("\n");
 }
 
 export class OpenAICompatibleModelProvider implements ModelProvider {
@@ -18,7 +24,7 @@ export class OpenAICompatibleModelProvider implements ModelProvider {
     try {
       const response = await fetch(`${env.MODEL_BASE_URL.replace(/\/$/, "")}/chat/completions`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${env.MODEL_API_KEY}`, "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${env.MODEL_API_KEY}`, "Content-Type": "application/json", "User-Agent": env.MODEL_USER_AGENT, Accept: "application/json" },
         body: JSON.stringify({
           model,
           temperature: 0,

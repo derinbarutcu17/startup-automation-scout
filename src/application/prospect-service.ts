@@ -40,7 +40,10 @@ import { researchPeople, type CandidateSourceResolution } from "@/src/modules/pe
 import { generateOutreachAngles } from "@/src/modules/outreach-analysis";
 import { composeDraftSequence } from "@/src/modules/draft-composer";
 import { exportProspectDossier } from "@/src/modules/hermes-export";
+import { createProspectDossierPdfs } from "@/src/modules/prospect-pdf";
+import { deliverProspectPdfsViaHermes } from "@/src/modules/hermes-telegram";
 import { getProviders } from "@/src/providers";
+import { recommendDerinCapabilities } from "@/src/modules/derin-capabilities";
 import { FixtureGmailProvider, FixturePeopleProvider } from "@/src/providers/people-fixtures";
 import { GoogleGmailDraftProvider } from "@/src/providers/google-gmail";
 import type { PersonCandidate } from "@/src/providers/contracts";
@@ -477,6 +480,7 @@ export async function exportProspectBundle(prospectDossierId: string, opts?: { i
     },
     company: { id: company.id, canonicalName: company.canonicalName, canonicalDomain: company.canonicalDomain },
     opportunity: opportunity ? { id: opportunity.opportunity.id, proposedSystem: opportunity.opportunity.proposedSystem } : null,
+    capabilityOffers: recommendDerinCapabilities({ proposedSystem: opportunity?.opportunity.proposedSystem, angleText: detail.angles.map((angle) => `${angle.title} ${angle.workflowHypothesis}`).join(" ") }),
     persons: detail.persons.map((person) => ({ id: person.id, fullName: person.fullName, roleTitle: person.roleTitle, profileUrl: person.profileUrl, status: person.status, lastVerifiedAt: person.lastVerifiedAt ? new Date(person.lastVerifiedAt).toISOString() : null })),
     personClaims: detail.personClaims.map((claim) => ({
       id: claim.id,
@@ -510,6 +514,16 @@ export async function exportProspectBundle(prospectDossierId: string, opts?: { i
   const { db } = getDb();
   await db.update(prospectDossiers).set({ contentFingerprint: bundle.fingerprint, updatedAt: new Date() }).where(eq(prospectDossiers.id, prospectDossierId));
   return bundle;
+}
+
+export async function sendProspectBundleToTelegram(prospectDossierId: string): Promise<{ bundle: HermesBundle; delivery: Awaited<ReturnType<typeof deliverProspectPdfsViaHermes>> }> {
+  const env = getEnv();
+  if (!env.HERMES_TELEGRAM_DELIVERY_ENABLED) throw new Error("hermes_telegram_delivery_disabled");
+  const bundle = await exportProspectBundle(prospectDossierId, { includeContacts: false });
+  const pdfs = await createProspectDossierPdfs(bundle);
+  const company = (bundle.json.company as { canonicalName?: string } | undefined)?.canonicalName ?? "prospect";
+  const delivery = await deliverProspectPdfsViaHermes({ companyName: company, fingerprint: bundle.fingerprint, pdfs, target: env.HERMES_TELEGRAM_TARGET, cliPath: env.HERMES_CLI_PATH, directory: env.HERMES_DELIVERY_DIRECTORY });
+  return { bundle, delivery };
 }
 
 async function validateDraftForExternalAction(draft: ProspectDraft, detail: ProspectDetail, companyDomain: string, researchDossier: NonNullable<Awaited<ReturnType<typeof getDossierById>>>) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { exportProspectBundle } from "@/src/application/prospect-service";
+import { createProspectDossierPdfs } from "@/src/modules/prospect-pdf";
 
 function safeFilename(value: unknown): string {
   return String(value ?? "prospect-dossier").replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "prospect-dossier";
@@ -10,11 +11,23 @@ export async function GET(request: Request, context: { params: Promise<{ prospec
   const searchParams = new URL(request.url).searchParams;
   const format = searchParams.get("format") ?? "markdown";
   const includeContacts = searchParams.get("includeContacts") === "true";
-  if (format !== "markdown" && format !== "json") return NextResponse.json({ error: "format must be markdown or json" }, { status: 400 });
+  if (format !== "markdown" && format !== "json" && format !== "pdf") return NextResponse.json({ error: "format must be markdown, json, or pdf" }, { status: 400 });
   try {
     const bundle = await exportProspectBundle(prospectDossierId, { includeContacts });
     const company = (bundle.json.company as { canonicalName?: string } | undefined)?.canonicalName;
     const contactSuffix = includeContacts ? "-verified-contacts" : "";
+    if (format === "pdf") {
+      const part = searchParams.get("part") === "outreach" ? "outreach" : "dossier";
+      const pdfs = await createProspectDossierPdfs(bundle);
+      const filename = `${safeFilename(company)}-prospect-${part}${contactSuffix}.pdf`;
+      return new NextResponse(new Uint8Array(pdfs[part]), {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="${filename}"`,
+          "Cache-Control": "no-store",
+        },
+      });
+    }
     const filename = `${safeFilename(company)}-prospect-dossier${contactSuffix}.${format === "json" ? "json" : "md"}`;
     const body = format === "json" ? JSON.stringify(bundle.json, null, 2) : bundle.markdown;
     return new NextResponse(body, {

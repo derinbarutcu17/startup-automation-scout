@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-08-31T15:52:53.845Z",
+  "companiesResearched": 9,
+  "excludedCompanies": 3,
+  "opportunities": 6,
+  "verifiedHighClaims": 172,
+  "byCompany": {
+    "N8n": {
+      "sources": 4,
+      "verifiedHigh": 38
+    },
+    "Taktile": {
+      "sources": 5,
+      "verifiedHigh": 34
+    },
+    "Impargo": {
+      "sources": 8,
+      "verifiedHigh": 42
+    }
+  }
+}
